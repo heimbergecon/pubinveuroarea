@@ -89,7 +89,7 @@ res_gdp <- lpirfs::lp_lin_panel(
 #Public investment ratio response
 res_ratio <- lpirfs::lp_lin_panel(
   data_set      = data_select,
-  endog_data    = "PUBINVRATIO",       # percentage points of GDP (level, not growth)
+  endog_data    = "PUBINVRATIO",      
   shock         = "forecasterror",
   diff_shock    = FALSE,
   panel_model   = "within",
@@ -121,23 +121,23 @@ ratio_cum  <- to_cum(res_ratio)
 gdp_cum$horizon_true<-c(0,1,2,3)
 ratio_cum$horizon_true<-c(0,1,2,3)
 
-# join cumulative responses
+#join cumulative responses
 cum_df <- dplyr::left_join(
   gdp_cum  |> dplyr::rename(h = horizon_true, X = cum, X_lo = cum_lo, X_hi = cum_hi),
   ratio_cum|> dplyr::rename(h = horizon_true, Y = cum, Y_lo = cum_lo, Y_hi = cum_hi),
   by = "h"
 )
 
-# back out 1·SE for X and Y
+#back out 1·SE for X and Y
 se_X <- 0.5 * ((cum_df$X_hi - cum_df$X) + (cum_df$X - cum_df$X_lo))
 se_Y <- 0.5 * ((cum_df$Y_hi - cum_df$Y) + (cum_df$Y - cum_df$Y_lo))
 
-# point multiplier
-R_point <- (cum_df$X / cum_df$Y) * 100  # match your scaling convention
+#point multiplier
+R_point <- (cum_df$X / cum_df$Y) * 100
 
-# delta-method SE for ratio R = X/Y, ignoring Cov(X,Y) (conservative if Cov > 0)
-# Var(R) ≈ (1/Y^2) Var(X) + (X^2 / Y^4) Var(Y) - 2 X/(Y^3) Cov(X,Y) / Here we set Cov = 0 for a quick ±1·SE band.
-eps <- 1e-10  # guard against tiny denominators
+#delta-method SE for ratio R = X/Y, ignoring Cov(X,Y) (conservative if Cov > 0)
+#Var(R) ≈ (1/Y^2) Var(X) + (X^2 / Y^4) Var(Y) - 2 X/(Y^3) Cov(X,Y) / Here we set Cov = 0 for a quick ±1·SE band.
+eps <- 1e-10
 Ysafe <- ifelse(abs(cum_df$Y) < eps, NA_real_, cum_df$Y)
 
 se_R <- sqrt( (se_X^2) / (Ysafe^2) + ((cum_df$X^2) * (se_Y^2)) / (Ysafe^4) ) * 100
@@ -151,7 +151,7 @@ mult_pp <- data.frame(
 
 print(mult_pp)
 
-#Create multiplier chart
+#create multiplier chart
 chart_multiplier<-ggplot(mult_pp, aes(x = horizon_true, y = mult_point)) +
   geom_ribbon(aes(ymin = mult_lo, ymax = mult_hi), fill = "grey", alpha = 0.4) +
   geom_line(linewidth = 1) +
@@ -187,13 +187,13 @@ to_cum_delta <- function(irf_obj, scale = 1){
   lo  <- as.numeric(irf_obj$irf_panel_low)  * scale
   hi  <- as.numeric(irf_obj$irf_panel_up)   * scale
   
-  # per-horizon SE (average of upper/lower distances)
+  #per-horizon SE (average of upper/lower distances)
   se  <- 0.5 * ((hi - mu) + (mu - lo))
   
-  # cumulative point response
+  #cumulative point response
   cum_mu <- cumsum(mu)
   
-  # delta method for sum: Var(sum) = sum of variances
+  #delta method for sum: Var(sum) = sum of variances
   cum_se <- sqrt(cumsum(se^2))
   
   #build data frame
@@ -223,7 +223,7 @@ to_cum <- function(irf_obj, scale = 1){
 inv_cum   <- to_cum(res_inv)
 inv_cum$horizon_true<-c(0,1,2,3)
 
-#Create chart
+#create chart
 chart_investment<-ggplot(inv_cum, aes(x = horizon_true, y = cum)) +
   geom_ribbon(aes(ymin = cum_lo, ymax = cum_hi), fill = "grey", alpha = 0.4) +
   geom_line(linewidth = 1) +
@@ -257,7 +257,7 @@ res_pdebt <- lpirfs::lp_lin_panel(
 pdebt_cum <- to_cum(res_pdebt)
 pdebt_cum$horizon_true<-c(0,1,2,3)
 
-#Create chart
+#create chart
 chart_pdebt<-ggplot(pdebt_cum, aes(x = horizon_true, y = cum)) +
   geom_ribbon(aes(ymin = cum_lo, ymax = cum_hi), fill = "grey", alpha = 0.4) +
   geom_line(linewidth = 1) +
@@ -291,7 +291,7 @@ res_unem <- lpirfs::lp_lin_panel(
 unem_cum <- to_cum(res_unem, scale = 1)
 unem_cum$horizon_true<-c(0,1,2,3)
 
-#Create chart
+#create chart
 chart_unem<-ggplot(unem_cum, aes(x = horizon_true, y = cum)) +
   geom_ribbon(aes(ymin = cum_lo, ymax = cum_hi), fill = "grey", alpha = 0.4) +
   geom_line(linewidth = 1) +
@@ -323,10 +323,10 @@ res_gdp_rob1 <- lpirfs::lp_lin_panel(
   hor           = 4
 )
 
-#Public investment ratio response
+#public investment ratio response
 res_ratio_rob1 <- lpirfs::lp_lin_panel(
   data_set      = data_select,
-  endog_data    = "PUBINVRATIO",       # percentage points of GDP (level, not growth)
+  endog_data    = "PUBINVRATIO",       
   shock         = "forecasterror",
   diff_shock    = FALSE,
   panel_model   = "within",
@@ -358,22 +358,22 @@ ratio_cum_rob1  <- to_cum(res_ratio_rob1)
 gdp_cum_rob1$horizon_true<-c(0,1,2,3)
 ratio_cum_rob1$horizon_true<-c(0,1,2,3)
 
-# join cumulative responses
+#join cumulative responses
 cum_df_rob1 <- dplyr::left_join(
   gdp_cum_rob1  |> dplyr::rename(h = horizon_true, X = cum, X_lo = cum_lo, X_hi = cum_hi),
   ratio_cum_rob1|> dplyr::rename(h = horizon_true, Y = cum, Y_lo = cum_lo, Y_hi = cum_hi),
   by = "h"
 )
 
-# back out 1·SE for X and Y
+#back out 1·SE for X and Y
 se_X_rob1 <- 0.5 * ((cum_df_rob1$X_hi - cum_df_rob1$X) + (cum_df_rob1$X - cum_df_rob1$X_lo))
 se_Y_rob1 <- 0.5 * ((cum_df_rob1$Y_hi - cum_df_rob1$Y) + (cum_df_rob1$Y - cum_df_rob1$Y_lo))
 
-# point multiplier
-R_point_rob1 <- (cum_df_rob1$X / cum_df_rob1$Y) * 100  # match your scaling convention
+#point multiplier
+R_point_rob1 <- (cum_df_rob1$X / cum_df_rob1$Y) * 100 
 
-# delta-method SE
-eps_rob1 <- 1e-10  # guard against tiny denominators
+#delta-method SE
+eps_rob1 <- 1e-10
 Ysafe_rob1 <- ifelse(abs(cum_df_rob1$Y) < eps_rob1, NA_real_, cum_df_rob1$Y)
 
 se_R_rob1 <- sqrt( (se_X_rob1^2) / (Ysafe_rob1^2) + ((cum_df_rob1$X^2) * (se_Y_rob1^2)) / (Ysafe_rob1^4) ) * 100
@@ -406,7 +406,7 @@ res_gdp_rob2 <- lpirfs::lp_lin_panel(
 #Public investment ratio response
 res_ratio_rob2 <- lpirfs::lp_lin_panel(
   data_set      = data_select,
-  endog_data    = "PUBINVRATIO",       # percentage points of GDP (level, not growth)
+  endog_data    = "PUBINVRATIO",       
   shock         = "forecasterror",
   diff_shock    = FALSE,
   panel_model   = "within",
@@ -425,22 +425,22 @@ ratio_cum_rob2  <- to_cum(res_ratio_rob2)
 gdp_cum_rob2$horizon_true<-c(0,1,2,3)
 ratio_cum_rob2$horizon_true<-c(0,1,2,3)
 
-# join cumulative responses
+#join cumulative responses
 cum_df_rob2 <- dplyr::left_join(
   gdp_cum_rob2  |> dplyr::rename(h = horizon_true, X = cum, X_lo = cum_lo, X_hi = cum_hi),
   ratio_cum_rob2|> dplyr::rename(h = horizon_true, Y = cum, Y_lo = cum_lo, Y_hi = cum_hi),
   by = "h"
 )
 
-# back out 1·SE for X and Y
+#back out 1·SE for X and Y
 se_X_rob2 <- 0.5 * ((cum_df_rob2$X_hi - cum_df_rob2$X) + (cum_df_rob2$X - cum_df_rob2$X_lo))
 se_Y_rob2 <- 0.5 * ((cum_df_rob2$Y_hi - cum_df_rob2$Y) + (cum_df_rob2$Y - cum_df_rob2$Y_lo))
 
-# point multiplier
-R_point_rob2 <- (cum_df_rob2$X / cum_df_rob2$Y) * 100  # match your scaling convention
+#point multiplier
+R_point_rob2 <- (cum_df_rob2$X / cum_df_rob2$Y) * 100
 
-# delta-method SE
-eps_rob2 <- 1e-10  # guard against tiny denominators
+#delta-method SE
+eps_rob2 <- 1e-10
 Ysafe_rob2 <- ifelse(abs(cum_df_rob2$Y) < eps_rob2, NA_real_, cum_df_rob2$Y)
 
 se_R_rob2 <- sqrt( (se_X_rob2^2) / (Ysafe_rob2^2) + ((cum_df_rob2$X^2) * (se_Y_rob2^2)) / (Ysafe_rob2^4) ) * 100
@@ -473,7 +473,7 @@ res_gdp_rob3 <- lpirfs::lp_lin_panel(
 #Public investment ratio response
 res_ratio_rob3 <- lpirfs::lp_lin_panel(
   data_set      = data_select,
-  endog_data    = "PUBINVRATIO",       # percentage points of GDP (level, not growth)
+  endog_data    = "PUBINVRATIO",      
   shock         = "forecasterror",
   diff_shock    = FALSE,
   panel_model   = "within",
@@ -492,22 +492,22 @@ ratio_cum_rob3  <- to_cum(res_ratio_rob3)
 gdp_cum_rob3$horizon_true<-c(0,1,2,3)
 ratio_cum_rob3$horizon_true<-c(0,1,2,3)
 
-# join cumulative responses
+#join cumulative responses
 cum_df_rob3 <- dplyr::left_join(
   gdp_cum_rob3  |> dplyr::rename(h = horizon_true, X = cum, X_lo = cum_lo, X_hi = cum_hi),
   ratio_cum_rob3|> dplyr::rename(h = horizon_true, Y = cum, Y_lo = cum_lo, Y_hi = cum_hi),
   by = "h"
 )
 
-# back out 1·SE for X and Y
+#back out 1·SE for X and Y
 se_X_rob3 <- 0.5 * ((cum_df_rob3$X_hi - cum_df_rob3$X) + (cum_df_rob3$X - cum_df_rob3$X_lo))
 se_Y_rob3 <- 0.5 * ((cum_df_rob3$Y_hi - cum_df_rob3$Y) + (cum_df_rob3$Y - cum_df_rob3$Y_lo))
 
-# point multiplier
-R_point_rob3 <- (cum_df_rob3$X / cum_df_rob3$Y) * 100  # match your scaling convention
+#point multiplier
+R_point_rob3 <- (cum_df_rob3$X / cum_df_rob3$Y) * 100
 
-# delta-method SE
-eps_rob3 <- 1e-10  # guard against tiny denominators
+#delta-method SE
+eps_rob3 <- 1e-10 
 Ysafe_rob3 <- ifelse(abs(cum_df_rob3$Y) < eps_rob3, NA_real_, cum_df_rob3$Y)
 
 se_R_rob3 <- sqrt( (se_X_rob3^2) / (Ysafe_rob3^2) + ((cum_df_rob3$X^2) * (se_Y_rob3^2)) / (Ysafe_rob3^4) ) * 100
